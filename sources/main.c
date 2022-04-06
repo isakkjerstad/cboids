@@ -5,6 +5,7 @@
 
 #include "config.h"
 #include "screen.h"
+#include "boids.h"
 
 /* Init. a SDL2 window and screen, return zero on success. */
 int init_rendering(SDL_Window **window, SDL_Surface **screen);
@@ -32,7 +33,7 @@ int main(int argc, char *argv[]) {
         // TODO: Animate the boids here!
 
         // REMOVE ME: This line is only for testing.
-        fill_pixel(screen, 50, 50, SDL_MapRGBA(pxF, 255, 0, 0, 255));
+        draw_point(screen, 200, 200, 10, SDL_MapRGBA(pxF, 255, 0, 0, 255));
 
         // Swap the screen and window buffer.
         SDL_UpdateWindowSurface(window);
@@ -41,13 +42,13 @@ int main(int argc, char *argv[]) {
         while (SDL_PollEvent(&queue)) {
             switch (queue.type) {
 
-            case SDL_QUIT:
-                running = false;
-                break;
-
             case SDL_KEYDOWN:
                 if (queue.key.keysym.scancode == SDL_SCANCODE_ESCAPE)       { running = false; }
                 if (queue.key.keysym.scancode == SDL_SCANCODE_BACKSPACE)    { running = false; }
+                break;
+
+            case SDL_QUIT:
+                running = false;
                 break;
             
             default:

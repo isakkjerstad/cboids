@@ -23,7 +23,7 @@ int fill_pixel(SDL_Surface *screen, int px, int py, unsigned int color) {
     unsigned int idx = px + (py * screen->w);
 
     // Check if the requested pixel is within a valid area.
-    if (idx > (screen->w * screen->h) || px < 0 || py < 0) {
+    if (px >= screen->w || py >= screen->h || px < 0 || py < 0) {
 
         if (DEBUG) {
             fprintf(stderr, "Failed to set pixel (%d, %d) outside of the surface!\n", px, py);
@@ -41,6 +41,27 @@ int fill_pixel(SDL_Surface *screen, int px, int py, unsigned int color) {
     pixels[idx] = color;
 
     SDL_UnlockSurface(screen);
+
+    return 0;
+}
+
+int draw_point(SDL_Surface *screen, int cx, int cy, int size, unsigned int color) {
+
+    // Adjust circle curve.
+    const int adjust = 0.8;
+
+    // Iterate over all possible pixels in a square.
+    for (int py = -size; py <= size; py++) {
+        for (int px = -size; px <= size; px++) {
+            
+            // Only draw pixels inside a circle, with the given color.
+            if (px * px + py * py <= size * size + (size * adjust)) {
+                if (fill_pixel(screen, (px + cx), (py + cy), color) != 0) {
+                    return 1;
+                }
+            }
+        }
+    }
 
     return 0;
 }
