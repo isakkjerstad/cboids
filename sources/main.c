@@ -15,12 +15,20 @@ void destroy_rendering(SDL_Window **window);
 
 int main(int argc, char *argv[]) {
 
+    unsigned int nBirds = 100;
+
     // Set up SDL2 for displaying and altering content.
     SDL_Window *window; SDL_Surface *screen;
     if (init_rendering(&window, &screen) == EXIT_FAILURE) { return EXIT_FAILURE; }
 
     SDL_Event queue;
     SDL_PixelFormat *pxF = screen->format;
+
+    // Create the bird boids as an array of boid structures.
+    boid_t *boidArr[nBirds];
+    for (int idx = 0; idx < nBirds; idx++) {
+        boidArr[idx] = create_boid(BIRD, screen);
+    }
 
     bool running = true;
     while (running) {
@@ -30,10 +38,11 @@ int main(int argc, char *argv[]) {
         // Clear the screen, with the given RGBA color.
         fill_screen(screen, SDL_MapRGBA(pxF, 0, 0, 0, 0));
 
-        // TODO: Animate the boids here!
+        // Animate the bird boids.
+        draw_boids(nBirds, boidArr);
+        move_boids(nBirds, boidArr);
 
-        // REMOVE ME: This line is only for testing.
-        draw_point(screen, 200, 200, 10, SDL_MapRGBA(pxF, 255, 0, 0, 255));
+        SDL_Delay(30);
 
         // Swap the screen and window buffer.
         SDL_UpdateWindowSurface(window);

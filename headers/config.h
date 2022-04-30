@@ -9,6 +9,6 @@
 #define SCREEN_HEIGHT   480
 #define FPS             60
 
-#define DEBUG           true
+#define DEBUG           false
 
 #endif
