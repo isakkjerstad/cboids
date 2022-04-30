@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
+#include <time.h>
 
 #include "config.h"
 #include "screen.h"
@@ -24,6 +25,10 @@ int main(int argc, char *argv[]) {
     SDL_Event queue;
     SDL_PixelFormat *pxF = screen->format;
 
+    // Framerate limiter variables.
+    const uint32_t renderDelay = 1000 / FPS;
+    uint32_t renderStartTime, renderTime;
+
     // Create the bird boids as an array of boid structures.
     boid_t *boidArr[nBirds];
     for (int idx = 0; idx < nBirds; idx++) {
@@ -33,16 +38,19 @@ int main(int argc, char *argv[]) {
     bool running = true;
     while (running) {
 
-        // TODO: Time the framerate here!
+        // Start the render timer.
+        renderStartTime = SDL_GetTicks();
+
+        // Seed random.
+        srand(time(NULL));
 
         // Clear the screen, with the given RGBA color.
         fill_screen(screen, SDL_MapRGBA(pxF, 0, 0, 0, 0));
 
         // Animate the bird boids.
-        draw_boids(nBirds, boidArr);
+        simulate_boids(nBirds, boidArr, 0, NULL, 0, NULL);
         move_boids(nBirds, boidArr);
-
-        SDL_Delay(30);
+        draw_boids(nBirds, boidArr);
 
         // Swap the screen and window buffer.
         SDL_UpdateWindowSurface(window);
@@ -65,7 +73,13 @@ int main(int argc, char *argv[]) {
             }
         }
         
-        // TODO: Limit framerate here!
+        // Stop the render timer, get result.
+        renderTime = SDL_GetTicks() - renderStartTime;
+
+        // Limit framerate to the set FPS limit.
+        if (renderTime < renderDelay) {
+            SDL_Delay(renderDelay - renderTime);
+        }
     }
 
     // Free up resources and quit.

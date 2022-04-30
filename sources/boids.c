@@ -5,6 +5,19 @@
 #include "screen.h"
 #include "boids.h"
 
+static int rand_velocity(unsigned int minVel, unsigned int maxVel) {
+
+    // Calculate a random velocity with a minimum and maximum value.
+    int velocity = minVel + (rand() % ((maxVel + 1) - minVel));
+
+    // Set velocity sign.
+    if (rand() % 2) {
+        return -velocity;
+    } else {
+        return velocity;
+    }
+}
+
 boid_t *create_boid(int type, SDL_Surface *screen) {
 
     SDL_PixelFormat *pxF = screen->format;
@@ -45,8 +58,8 @@ boid_t *create_boid(int type, SDL_Surface *screen) {
     newBoid->yPos = rand() % screen->h;
 
     // Set random velocity.
-    newBoid->xVel = rand() % 20;
-    newBoid->yVel = rand() % 20;
+    newBoid->xVel = rand_velocity(MIN_VEL, MAX_VEL);
+    newBoid->yVel = rand_velocity(MIN_VEL, MAX_VEL);
 
     return newBoid;
 }
@@ -77,11 +90,16 @@ void move_boids(int n, boid_t **boidArr) {
         boid->yPos += boid->yVel;
 
         // Wrap around screen in X direction.
-        if (boid->xPos > boid->screen->w) boid->xPos = 0;
-        if (boid->xPos < 0) boid->xPos = boid->screen->w;
+        if (boid->xPos > boid->screen->w) boid->xPos = BOID_SIZE;
+        if (boid->xPos < -BOID_SIZE) boid->xPos = boid->screen->w;
 
         // Wrap around screen in Y direction.
-        if (boid->yPos > boid->screen->h) boid->yPos = 0;
-        if (boid->yPos < 0) boid->yPos = boid->screen->h;
+        if (boid->yPos > boid->screen->h) boid->yPos = BOID_SIZE;
+        if (boid->yPos < -BOID_SIZE) boid->yPos = boid->screen->h;
     }
+}
+
+void simulate_boids(int nb, boid_t **boidArr, int nh, boid_t **hoikArr, int no, boid_t **obstArr) {
+
+    // TODO: Implement Me!
 }
