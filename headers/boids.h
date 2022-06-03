@@ -4,10 +4,10 @@
 #include <SDL2/SDL.h>
 
 enum boidConfig {
-    BOID_SIZE = 5,
+    BOID_SIZE = 10,
     MIN_VEL = 2,
-    MAX_VEL = 20,
-    RANGE = 0,
+    MAX_VEL = 8,
+    RANGE = 120,
     ALIGN = 0,
     COHESION = 0,
     SEPARATION = 0,

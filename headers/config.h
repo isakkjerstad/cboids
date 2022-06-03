@@ -5,9 +5,12 @@
 
 #define TITLE           "Boids in C with SDL2"
 
-#define SCREEN_WIDHT    640*2
-#define SCREEN_HEIGHT   480*2
+#define SCREEN_WIDHT    1920
+#define SCREEN_HEIGHT   1080
 #define FPS             60
+
+#define DRAW_VEL        true
+#define DRAW_VRANGE     true
 
 #define DEBUG           false
 

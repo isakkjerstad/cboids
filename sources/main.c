@@ -16,7 +16,7 @@ void destroy_rendering(SDL_Window **window);
 
 int main(int argc, char *argv[]) {
 
-    unsigned int nBirds = 100;
+    unsigned int nBirds = 10;
 
     // Set up SDL2 for displaying and altering content.
     SDL_Window *window; SDL_Surface *screen;

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 
+#include "config.h"
 #include "screen.h"
 #include "boids.h"
 
@@ -37,19 +38,19 @@ boid_t *create_boid(int type, SDL_Surface *screen) {
     // Set boid color.
     switch (newBoid->type) {
     case BIRD:
-        newBoid->color = SDL_MapRGBA(pxF, 0, 0, 255, 255);
+        newBoid->color = SDL_MapRGBA(pxF, 0, 255, 0, 255);
         break;
 
     case HOIK:
-        newBoid->color = SDL_MapRGBA(pxF, 255, 0, 0, 255);;
+        newBoid->color = SDL_MapRGBA(pxF, 255, 0, 0, 255);
         break;
 
     case BAIT:
-        newBoid->color = SDL_MapRGBA(pxF, 0, 255, 0, 255);;
+        newBoid->color = SDL_MapRGBA(pxF, 0, 0, 255, 255);
         break;
     
     default:
-        newBoid->color = SDL_MapRGBA(pxF, 0, 0, 0, 0);;
+        newBoid->color = SDL_MapRGBA(pxF, 0, 0, 0, 0);
         break;
     }
 
@@ -71,6 +72,28 @@ void draw_boids(int n, boid_t **boidArr) {
 
         // Get current boid.
         boid_t *boid = boidArr[idx];
+
+        // Draw vision range.
+        if (DRAW_VRANGE == true) {
+
+            unsigned int circleColor = SDL_MapRGBA(boid->screen->format, 64, 64, 64, 255);
+
+            // Draw a circle around the boid to represent the boid's vision range.
+            draw_circle(boid->screen, boid->xPos, boid->yPos, BOID_SIZE + RANGE, circleColor);
+        }
+
+        // Draw velocity arrow.
+        if (DRAW_VEL == true) {
+
+            unsigned int velLineColor = SDL_MapRGBA(boid->screen->format, 128, 128, 128, 255);
+
+            // End position of velocity vector, i.e. pos. after one second.
+            int velX = boid->xPos + (boid->xVel * FPS);
+            int velY = boid->yPos + (boid->yVel * FPS);
+
+            // Draw line from the center of the boid to represent the velocity.
+            draw_line(boid->screen, boid->xPos, boid->yPos, velX, velY, velLineColor);
+        }
 
         // Draw the boid on the screen, with a given size.
         draw_point(boid->screen, boid->xPos, boid->yPos, BOID_SIZE, boid->color);
