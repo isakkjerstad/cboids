@@ -79,6 +79,10 @@ void draw_circle(SDL_Surface *screen, int cx, int cy, int radius, unsigned int c
     }
 }
 
+/* Partial functions req. for the Bresenham's line drawing algorithm. */
+static void plotLineHigh(SDL_Surface *surface, int x0, int y0, int x1, int y1, unsigned int color);
+static void plotLineLow(SDL_Surface *surface, int x0, int y0, int x1, int y1, unsigned int color);
+
 void draw_line(SDL_Surface *screen, int x0, int y0, int x1, int y1, unsigned int color) {
 
     // Draw using Bresenham's line algorithm.

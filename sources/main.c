@@ -16,7 +16,10 @@ void destroy_rendering(SDL_Window **window);
 
 int main(int argc, char *argv[]) {
 
-    unsigned int nBirds = 10;
+    unsigned int nBirds = 1000;
+    unsigned int nHoiks = 0;
+    unsigned int nBaits = 0;
+    unsigned int nObstacles = 0;
 
     // Set up SDL2 for displaying and altering content.
     SDL_Window *window; SDL_Surface *screen;
@@ -31,8 +34,26 @@ int main(int argc, char *argv[]) {
 
     // Create the bird boids as an array of boid structures.
     boid_t *boidArr[nBirds];
-    for (int idx = 0; idx < nBirds; idx++) {
+    for (unsigned int idx = 0; idx < nBirds; idx++) {
         boidArr[idx] = create_boid(BIRD, screen);
+    }
+
+    // Create the hoiks.
+    boid_t *hoikArr[nHoiks];
+    for (unsigned int idx = 0; idx < nHoiks; idx++) {
+        hoikArr[idx] = create_boid(HOIK, screen);
+    }
+
+    // Create the bait.
+    boid_t *baitArr[nBaits];
+    for (unsigned int idx = 0; idx < nBaits; idx++) {
+        baitArr[idx] = create_boid(BAIT, screen);
+    }
+
+    // Create the obstacles.
+    boid_t *obstacleArr[nObstacles];
+    for (unsigned int idx = 0; idx < nObstacles; idx++) {
+        obstacleArr[idx] = create_boid(OBSTACLE, screen);
     }
 
     bool running = true;
@@ -47,10 +68,24 @@ int main(int argc, char *argv[]) {
         // Clear the screen, with the given RGBA color.
         fill_screen(screen, SDL_MapRGBA(pxF, 0, 0, 0, 0));
 
+        // Simulate boid behaviour with the entire system.
+        simulate_boids(nBirds, boidArr, nHoiks, hoikArr, nBaits, baitArr, nObstacles, obstacleArr);
+
         // Animate the bird boids.
-        simulate_boids(nBirds, boidArr, 0, NULL, 0, NULL);
         move_boids(nBirds, boidArr);
         draw_boids(nBirds, boidArr);
+
+        // Animate the hoiks.
+        move_boids(nHoiks, hoikArr);
+        draw_boids(nHoiks, hoikArr);
+
+        // Animate the bait.
+        move_boids(nBaits, baitArr);
+        draw_boids(nBaits, baitArr);
+
+        // Animate the obstacles.
+        move_boids(nObstacles, obstacleArr);
+        draw_boids(nObstacles, obstacleArr);
 
         // Swap the screen and window buffer.
         SDL_UpdateWindowSurface(window);
@@ -111,6 +146,8 @@ int init_rendering(SDL_Window **window, SDL_Surface **screen) {
         SDL_Quit();
         return EXIT_FAILURE;
     }
+
+    return 0;
 }
 
 void destroy_rendering(SDL_Window **window) {

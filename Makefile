@@ -3,8 +3,8 @@ BIN_NAME = boids
 
 # Compiler options and flags.
 COMPILER = gcc
-CFLAGS = -O3
-LIBS = `sdl2-config --libs --cflags` -ISDL2_image
+CFLAGS = -O3 -Wall -Wextra
+LIBS = `sdl2-config --libs --cflags` -ISDL2_image -lm
 
 # Input fIle directory names.
 SRC_DIR = sources

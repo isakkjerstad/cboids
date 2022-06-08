@@ -9,8 +9,8 @@
 #define SCREEN_HEIGHT   1080
 #define FPS             60
 
-#define DRAW_VEL        true
-#define DRAW_VRANGE     true
+#define DRAW_VEL        false
+#define DRAW_VRANGE     false
 
 #define DEBUG           false
 

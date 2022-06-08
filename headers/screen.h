@@ -18,8 +18,4 @@ void draw_circle(SDL_Surface *screen, int cx, int cy, int radius, unsigned int c
 /* Draws a line from (x0, y0) to (x1, y1) with the given color, using Bresenham's algorithm. */
 void draw_line(SDL_Surface *screen, int x0, int y0, int x1, int y1, unsigned int color);
 
-/* Partial functions req. for the Bresenham's line drawing algorithm. */
-static void plotLineHigh(SDL_Surface *surface, int x0, int y0, int x1, int y1, unsigned int color);
-static void plotLineLow(SDL_Surface *surface, int x0, int y0, int x1, int y1, unsigned int color);
-
 #endif
