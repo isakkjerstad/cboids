@@ -122,7 +122,7 @@ void draw_boids(int n, boid_t **boidArr) {
         }
 
         // Draw the boid on the screen, with a given size.
-        draw_point(boid->screen, boid->xPos, boid->yPos, boid->size, boid->color);
+        draw_point(boid->screen, round(boid->xPos), round(boid->yPos), boid->size, boid->color);
     }
 }
 
@@ -137,14 +137,6 @@ void move_boids(int n, boid_t **boidArr) {
         // Update boid position.
         boid->xPos += boid->xVel;
         boid->yPos += boid->yVel;
-
-        // Wrap around screen in X direction.
-        if (boid->xPos > boid->screen->w) boid->xPos = boid->size;
-        if (boid->xPos < -boid->size) boid->xPos = boid->screen->w;
-
-        // Wrap around screen in Y direction.
-        if (boid->yPos > boid->screen->h) boid->yPos = boid->size;
-        if (boid->yPos < -boid->size) boid->yPos = boid->screen->h;
     }
 }
 
@@ -165,11 +157,14 @@ static bool within_range(unsigned int range, int x0, int y0, int x1, int y1) {
     }
 }
 
-/* ... */
-static void separation(boid_t *boid, int n, boid_t **arr) {
+/* Applies boid physics to any given boid based on the flock. */
+static void physics(boid_t *boid, int n, boid_t **arr) {
 
     boid_t *otherBoid = NULL;
     float sumX = 0; float sumY = 0;
+    float avgVelX = 0; float avgVelY = 0;
+    float avgPosX = 0; float avgPosY = 0;
+    int boidsInRange = 0;
 
     // Iterate trough all provided boids.
     for (int idx = 0; idx < n; idx++) {
@@ -180,81 +175,20 @@ static void separation(boid_t *boid, int n, boid_t **arr) {
         // Only use boid if not the current.
         if (boid->uid != otherBoid->uid) {
 
-            // Perform calculations only on boids within the given vision range.
+            // Perform collision calculations only on boids within the given anti collision range.
             if (within_range(ANTI_COLLISION, boid->xPos, boid->yPos, otherBoid->xPos, otherBoid->yPos)) {
 
                 // Steer away from the sum of other boids.
                 sumX += boid->xPos - otherBoid->xPos;
                 sumY += boid->yPos - otherBoid->yPos;
             }
-        }
-    }
 
-    // Alter velocity of the given boid.
-    boid->xVel += sumX * SEPARATION;
-    boid->yVel += sumY * SEPARATION;
-}
-
-/* ... */
-static void alignment(boid_t *boid, int n, boid_t **arr) {
-
-    boid_t *otherBoid = NULL;
-
-    // Values used to calculate avg. velocity.
-    float avgVelX = 0; float avgVelY = 0;
-    int boidsInRange = 0;
-
-    // Iterate trough all provided boids.
-    for (int idx = 0; idx < n; idx++) {
-
-        otherBoid = arr[idx];
-
-        // Only use boid if not the current.
-        if (boid->uid != otherBoid->uid) {
-
-            // Perform calculations only on boids within the given vision range.
+            // Perform other calculations only on boids within the given vision range.
             if (within_range(RANGE, boid->xPos, boid->yPos, otherBoid->xPos, otherBoid->yPos)) {
                 
                 // Unique boid in range found.
                 avgVelX += otherBoid->xVel;
                 avgVelY += otherBoid->yVel;
-                boidsInRange++;
-            }
-        }
-    }
-
-    if (boidsInRange != 0) {
-
-        // Calculate avg. velocity for found boids.
-        avgVelX = avgVelX / boidsInRange;
-        avgVelY = avgVelY / boidsInRange;
-
-        // Set new velocity to match boids in range.
-        boid->xVel += (avgVelX - boid->xVel) * VELMATCH;
-        boid->yVel += (avgVelY - boid->yVel) * VELMATCH;
-    }
-}
-
-/* ... */
-static void cohesion(boid_t *boid, int n, boid_t **arr) {
-
-    boid_t *otherBoid = NULL;
-
-    float avgPosX = 0; float avgPosY = 0;
-    int boidsInRange = 0;
-
-    // Iterate trough all provided boids.
-    for (int idx = 0; idx < n; idx++) {
-
-        otherBoid = arr[idx];
-
-        // Only use boid if not the current.
-        if (boid->uid != otherBoid->uid) {
-
-            // Perform calculations only on boids within the given vision range.
-            if (within_range(RANGE, boid->xPos, boid->yPos, otherBoid->xPos, otherBoid->yPos)) {
-                
-                // Unique boid in range found.
                 avgPosX += otherBoid->xPos;
                 avgPosY += otherBoid->yPos;
                 boidsInRange++;
@@ -262,40 +196,74 @@ static void cohesion(boid_t *boid, int n, boid_t **arr) {
         }
     }
 
+    // Apply anti collison physics.
+    boid->xVel += sumX * SEPARATION;
+    boid->yVel += sumY * SEPARATION;
+
+    // Apply alignment and cohesion.
     if (boidsInRange != 0) {
+
+        // Calculate avg. velocity for found boids.
+        avgVelX = avgVelX / boidsInRange;
+        avgVelY = avgVelY / boidsInRange;
 
         // Calculate avg. position for found boids.
         avgPosX = avgPosX / boidsInRange;
         avgPosY = avgPosY / boidsInRange;
 
+        // Set new velocity to match boids in range.
+        boid->xVel += (avgVelX - boid->xVel) * VELMATCH;
+        boid->yVel += (avgVelY - boid->yVel) * VELMATCH;
+
         // Set new velocity in order to apply cohesion.
         boid->xVel += (avgPosX - boid->xPos) * COHESION;
         boid->yVel += (avgPosY - boid->yPos) * COHESION;
     }
-}
 
-/* ... */
-static void velocity_limit(boid_t *boid) {
+    // Apply left screen margin steering.
+    if (boid->xPos < MARGIN) {
+        boid->xVel += TURN_ACCL;
+    }
 
+    // Apply right screen margin steering.
+    if (boid->xPos > boid->screen->w - MARGIN) {
+        boid->xVel -= TURN_ACCL;
+    }
+
+    // Apply top screen margin steering.
+    if (boid->yPos < MARGIN) {
+        boid->yVel += TURN_ACCL;
+    }
+
+    // Apply bottom screen margin steering.
+    if (boid->yPos > boid->screen->h - MARGIN) {
+        boid->yVel -= TURN_ACCL;
+    }
+
+    // Calculate the current velocity of the given boid.
     float vel = sqrtf((boid->xVel * boid->xVel) + (boid->yVel * boid->yVel));
 
+    // Apply upper velocity limit.
     if (vel > MAX_VEL) {
         boid->xVel = (boid->xVel / vel) * MAX_VEL;
         boid->yVel = (boid->yVel / vel) * MIN_VEL;
     }
 
+    // Apply lower velocity limit.
     if (vel < MIN_VEL) {
         boid->xVel = (boid->xVel / vel) * MIN_VEL;
         boid->yVel = (boid->yVel / vel) * MAX_VEL;
     }
+
+    boid->color = (int)(vel*100);
 }
 
 void simulate_boids(int nb, boid_t **boidArr, int nh, boid_t **hoikArr, int nba, boid_t **baitArr, int no, boid_t **obstArr) {
 
+    // Simulation implemented for boids only.
     for (int idx = 0; idx < nb; idx++) {
-        separation(boidArr[idx], nb, boidArr);
-        alignment(boidArr[idx], nb, boidArr);
-        cohesion(boidArr[idx], nb, boidArr);
-        velocity_limit(boidArr[idx]);
+        physics(boidArr[idx], nb, boidArr);
     }
+
+    // TODO: Implement hoiks, bait and obstacles.
 }

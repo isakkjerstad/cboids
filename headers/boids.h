@@ -4,9 +4,11 @@
 #include <SDL2/SDL.h>
 
 /* Sim. params. */
-#define COHESION    0.004   // Cohesion factor.
-#define SEPARATION  0.032   // Separation factor.
-#define VELMATCH    0.027   // Velocity match factor.
+#define COHESION    0.007   // Cohesion factor.
+#define SEPARATION  0.036   // Separation factor.
+#define VELMATCH    0.022   // Velocity match factor.
+#define MARGIN      120     // Screen margin in pixels.
+#define TURN_ACCL   0.4     // Apply turn acceleration outside margin.
 
 enum boidConfig {
     BOID_SIZE = 4,          // Size of boids. Other items are relative to this size.
@@ -15,7 +17,7 @@ enum boidConfig {
     MIN_VEL = 2,            // Min. velocity for boids/hoiks.
     MAX_VEL = 7,            // Max. velocity for boids/hoiks.
     RANGE = 80,             // Vision range for boids/hoiks in pixels.
-    ANTI_COLLISION = 12,    // Anti collision range.
+    ANTI_COLLISION = 14,    // Anti collision range.
 };
 
 // Avail. boid types.
@@ -31,8 +33,8 @@ typedef struct boid {
     int uid;                // Unique ID.
     int type;               // Boid type (enum "boidType").
     int size;               // Radius of the given boid.
-    int xPos;               // Horizontal position.
-    int yPos;               // Vertical position.
+    float xPos;             // Horizontal position.
+    float yPos;             // Vertical position.
     float xVel;             // Horizontal velocity.
     float yVel;             // Vertical velocity.
     unsigned int color;     // SDL2 RGBA color value.
