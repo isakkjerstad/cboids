@@ -3,7 +3,7 @@ BIN_NAME = boids
 
 # Compiler options and flags.
 COMPILER = gcc
-CFLAGS = -O3 -Wall -Wextra
+CFLAGS = -Ofast -Wall -Wextra
 LIBS = `sdl2-config --libs --cflags` -ISDL2_image -lm
 
 # Input fIle directory names.

@@ -16,7 +16,7 @@ void destroy_rendering(SDL_Window **window);
 
 int main(int argc, char *argv[]) {
 
-    unsigned int nBirds = 2500;
+    unsigned int nBirds = 2000;
     unsigned int nHoiks = 0;        // NO-OP!
     unsigned int nBaits = 0;        // NO-OP!
     unsigned int nObstacles = 0;    // NO-OP!
