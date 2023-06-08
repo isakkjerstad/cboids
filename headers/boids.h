@@ -11,9 +11,8 @@
 #define TURN_ACCL   0.4     // Apply turn acceleration outside margin.
 
 enum boidConfig {
-    BOID_SIZE = 4,          // Size of boids. Other items are relative to this size.
-    RESIZE_FACTOR = 2,      // Size diff. of hoiks and bait relative to boids.
-    OBSTACLE_SIZE = 12,     // Size of obstacles.
+    BOID_SIZE = 4,          // Size of birds. Hoiks are relative to this size.
+    RESIZE_FACTOR = 3,      // Size diff. of hoiks relative to boids.
     MIN_VEL = 2,            // Min. velocity for boids/hoiks.
     MAX_VEL = 7,            // Max. velocity for boids/hoiks.
     RANGE = 80,             // Vision range for boids/hoiks in pixels.
@@ -24,8 +23,6 @@ enum boidConfig {
 enum boidType {
     BIRD,
     HOIK,
-    BAIT,
-    OBSTACLE,
 };
 
 // Boid structure.
@@ -47,8 +44,8 @@ boid_t *create_boid(int type, SDL_Surface *screen);
 /* Draw 'n' boids, stored as pointers in an array. */
 void draw_boids(int n, boid_t **boidArr);
 
-/* Add boid behaviour to the system for boids, hoiks bait and obstacles. */
-void simulate_boids(int nb, boid_t **boidArr, int nh, boid_t **hoikArr, int nba, boid_t **baitArr, int no, boid_t **obstArr);
+/* Add boid behaviour to the system for birds and hoiks. */
+void simulate_boids(int nb, boid_t **birdArr, int nh, boid_t **hoikArr);
 
 /* Move 'n' boids, stored as pointers in an array. */
 void move_boids(int n, boid_t **boidArr);

@@ -16,10 +16,8 @@ void destroy_rendering(SDL_Window **window);
 
 int main(int argc, char *argv[]) {
 
-    unsigned int nBirds = 2000;
-    unsigned int nHoiks = 0;        // NO-OP!
-    unsigned int nBaits = 0;        // NO-OP!
-    unsigned int nObstacles = 0;    // NO-OP!
+    unsigned int nBirds = 200;
+    unsigned int nHoiks = 2;
 
     // Set up SDL2 for displaying and altering content.
     SDL_Window *window; SDL_Surface *screen;
@@ -33,27 +31,15 @@ int main(int argc, char *argv[]) {
     uint32_t renderStartTime, renderTime;
 
     // Create the bird boids as an array of boid structures.
-    boid_t *boidArr[nBirds];
+    boid_t *birdArr[nBirds];
     for (unsigned int idx = 0; idx < nBirds; idx++) {
-        boidArr[idx] = create_boid(BIRD, screen);
+        birdArr[idx] = create_boid(BIRD, screen);
     }
 
     // Create the hoiks.
     boid_t *hoikArr[nHoiks];
     for (unsigned int idx = 0; idx < nHoiks; idx++) {
         hoikArr[idx] = create_boid(HOIK, screen);
-    }
-
-    // Create the bait.
-    boid_t *baitArr[nBaits];
-    for (unsigned int idx = 0; idx < nBaits; idx++) {
-        baitArr[idx] = create_boid(BAIT, screen);
-    }
-
-    // Create the obstacles.
-    boid_t *obstacleArr[nObstacles];
-    for (unsigned int idx = 0; idx < nObstacles; idx++) {
-        obstacleArr[idx] = create_boid(OBSTACLE, screen);
     }
 
     bool running = true;
@@ -69,23 +55,15 @@ int main(int argc, char *argv[]) {
         fill_screen(screen, SDL_MapRGBA(pxF, 0, 0, 0, 0));
 
         // Simulate boid behaviour with the entire system.
-        simulate_boids(nBirds, boidArr, nHoiks, hoikArr, nBaits, baitArr, nObstacles, obstacleArr);
+        simulate_boids(nBirds, birdArr, nHoiks, hoikArr);
 
         // Animate the bird boids.
-        move_boids(nBirds, boidArr);
-        draw_boids(nBirds, boidArr);
+        move_boids(nBirds, birdArr);
+        draw_boids(nBirds, birdArr);
 
         // Animate the hoiks.
         move_boids(nHoiks, hoikArr);
         draw_boids(nHoiks, hoikArr);
-
-        // Animate the bait.
-        move_boids(nBaits, baitArr);
-        draw_boids(nBaits, baitArr);
-
-        // Animate the obstacles.
-        move_boids(nObstacles, obstacleArr);
-        draw_boids(nObstacles, obstacleArr);
 
         // Swap the screen and window buffer.
         SDL_UpdateWindowSurface(window);
