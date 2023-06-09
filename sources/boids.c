@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <SDL2/SDL.h>
 
 #include "config.h"
@@ -7,7 +8,7 @@
 #include "boids.h"
 
 /* Applies boid physics to any given bird based on the flock. */
-static void bird_physics(boid_t *bird, int nb, boid_t **birdArr);
+static void bird_physics(boid_t *bird, int nb, boid_t **birdArr, int nh, boid_t **hoikArr);
 
 /* Applies hoik hunting physics, and alters the birds. */
 static void hunting_hoiks_physics(boid_t *hoik, int nb, boid_t **birdArr);
@@ -23,6 +24,8 @@ static bool within_range(unsigned int range, int x0, int y0, int x1, int y1);
 
 /* Return a positive/negative velocity within the given range. */
 static int rand_velocity(unsigned int minVel, unsigned int maxVel);
+
+unsigned int killed_birds = 0;
 
 boid_t *create_boid(int type, SDL_Surface *screen) {
 
@@ -83,13 +86,20 @@ void draw_boids(int n, boid_t **boidArr) {
         // Get current boid.
         boid_t *boid = boidArr[idx];
 
+        // Do not attempt to draw invisible boids.
+        if (boid->color == 0) continue;
+
         // Draw vision range.
         if (DRAW_VRANGE == true) {
 
             unsigned int circleColor = SDL_MapRGBA(boid->screen->format, 64, 64, 64, 255);
 
             // Draw a circle around the boid to represent the boid's vision range.
-            draw_circle(boid->screen, boid->xPos, boid->yPos, boid->size + RANGE, circleColor);
+            if (boid->type == HOIK) {
+                draw_circle(boid->screen, boid->xPos, boid->yPos, boid->size + (RANGE * RESIZE_FACTOR), circleColor);
+            } else {
+                draw_circle(boid->screen, boid->xPos, boid->yPos, boid->size + RANGE, circleColor);
+            }
         }
 
         // Draw velocity arrow.
@@ -118,6 +128,9 @@ void move_boids(int n, boid_t **boidArr) {
         // Get current boid.
         boid_t *boid = boidArr[idx];
 
+        // Do not attempt to move invisible boids.
+        if (boid->color == 0) continue;
+
         // Update boid position.
         boid->xPos += boid->xVel;
         boid->yPos += boid->yVel;
@@ -128,16 +141,18 @@ void simulate_boids(int nb, boid_t **birdArr, int nh, boid_t **hoikArr) {
     
     // Simulate all of the birds as a flock.
     for (int idx = 0; idx < nb; idx++) {
-        bird_physics(birdArr[idx], nb, birdArr);
+        if (birdArr[idx]->color == 0) continue;
+        bird_physics(birdArr[idx], nb, birdArr, nh, hoikArr);
     }
 
     // Simulate all hoiks in relation to the birds.
     for (int idx = 0; idx < nh; idx++) {
+        if (hoikArr[idx]->color == 0) continue;
         hunting_hoiks_physics(hoikArr[idx], nb, birdArr);
     }
 }
 
-static void bird_physics(boid_t *bird, int nb, boid_t **birdArr) {
+static void bird_physics(boid_t *bird, int nb, boid_t **birdArr, int nh, boid_t **hoikArr) {
 
     boid_t *otherBird = NULL;
     float sumX = 0; float sumY = 0;
@@ -150,6 +165,9 @@ static void bird_physics(boid_t *bird, int nb, boid_t **birdArr) {
 
         // Select one bird.
         otherBird = birdArr[idx];
+
+        // Ignore all invisible birds.
+        if (otherBird->color == 0) continue;
 
         // Only use birds if not the current.
         if (bird->uid != otherBird->uid) {
@@ -194,9 +212,29 @@ static void bird_physics(boid_t *bird, int nb, boid_t **birdArr) {
         bird->xVel += (avgVelX - bird->xVel) * VELMATCH;
         bird->yVel += (avgVelY - bird->yVel) * VELMATCH;
 
-        // Set new velocity in order to apply cohesion.
-        bird->xVel += (avgPosX - bird->xPos) * COHESION;
-        bird->yVel += (avgPosY - bird->yPos) * COHESION;
+        boid_t *hoik = NULL;
+        bool scatter = false;
+
+        // Decide on scattering, based on nearby hoiks.
+        for (int idx = 0; idx < nh; idx++) {
+            hoik = hoikArr[idx];
+            if (within_range(200, bird->xPos, bird->yPos, hoik->xPos, hoik->yPos)) {
+                scatter = true;
+            }
+        }
+
+        if (!scatter) {
+
+            // Set new velocity in order to apply cohesion.
+            bird->xVel += (avgPosX - bird->xPos) * COHESION;
+            bird->yVel += (avgPosY - bird->yPos) * COHESION;
+
+        } else {
+
+            // Scatter to avoid hoiks.
+            bird->xVel -= (avgPosX - bird->xPos) * COHESION;
+            bird->yVel -= (avgPosY - bird->yPos) * COHESION;
+        }
     }
 
     // Apply general boid rules.
@@ -206,7 +244,44 @@ static void bird_physics(boid_t *bird, int nb, boid_t **birdArr) {
 
 static void hunting_hoiks_physics(boid_t *hoik, int nb, boid_t **birdArr) {
 
-    // TODO: Implement me!
+    boid_t *bird = NULL;
+    int birdsInRange = 0;
+    float avgPosX = 0; float avgPosY = 0;
+
+    // Iterate over all birds.
+    for (int idx = 0; idx < nb; idx++) {
+
+        // Select one bird.
+        bird = birdArr[idx];
+
+        // Ignore invisible birds.
+        if (bird->color == 0) continue;
+
+        // Get values needed to calculate the average position of the nearest birds.
+        if (within_range(RANGE * RESIZE_FACTOR, hoik->xPos, hoik->yPos, bird->xPos, bird->yPos)) {
+            avgPosX += bird->xPos;
+            avgPosY += bird->yPos;
+            birdsInRange++;
+        }
+
+        // Kill birds trapped within the hoik, by changing the color.
+        if (within_range(hoik->size, hoik->xPos, hoik->yPos, bird->xPos, bird->yPos)) {
+
+            // Re-scale hoiks as they consume birds.
+            if (killed_birds % HOIK_EAT == 0) hoik->size++;
+
+            bird->color = 0;
+            killed_birds++;
+        }
+    }
+
+    // Calc. and steer the hoik towards the pray.
+    if (birdsInRange != 0) {
+        avgPosX = avgPosX / birdsInRange;
+        avgPosY = avgPosY / birdsInRange;
+        hoik->xVel += (avgPosX - hoik->xPos) * (COHESION / RESIZE_FACTOR);
+        hoik->yVel += (avgPosY - hoik->yPos) * (COHESION / RESIZE_FACTOR);
+    }
 
     // Apply general boid rules.
     screen_border_avoidance(hoik);

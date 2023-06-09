@@ -9,10 +9,11 @@
 #define VELMATCH    0.022   // Velocity match factor.
 #define MARGIN      120     // Screen margin in pixels.
 #define TURN_ACCL   0.4     // Apply turn acceleration outside margin.
+#define HOIK_EAT    100     // Eating/re-scaling factor for hoiks.
 
 enum boidConfig {
     BOID_SIZE = 4,          // Size of birds. Hoiks are relative to this size.
-    RESIZE_FACTOR = 3,      // Size diff. of hoiks relative to boids.
+    RESIZE_FACTOR = 3,      // Size diff. of hoiks relative to boids (incl. behaviour).
     MIN_VEL = 2,            // Min. velocity for boids/hoiks.
     MAX_VEL = 7,            // Max. velocity for boids/hoiks.
     RANGE = 80,             // Vision range for boids/hoiks in pixels.
@@ -25,7 +26,7 @@ enum boidType {
     HOIK,
 };
 
-// Boid structure.
+// Boid structure, invisible boids are dead and not handled.
 typedef struct boid {
     int uid;                // Unique ID.
     int type;               // Boid type (enum "boidType").
@@ -34,9 +35,12 @@ typedef struct boid {
     float yPos;             // Vertical position.
     float xVel;             // Horizontal velocity.
     float yVel;             // Vertical velocity.
-    unsigned int color;     // SDL2 RGBA color value.
+    unsigned int color;     // SDL2 RGBA color value (0 == dead).
     SDL_Surface *screen;    // SDL2 screen for boid placement.
 } boid_t;
+
+// Number of dead birds since the program started.
+extern unsigned int killed_birds;
 
 /* Returns init. boid of given type. */
 boid_t *create_boid(int type, SDL_Surface *screen);

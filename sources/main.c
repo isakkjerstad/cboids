@@ -16,8 +16,13 @@ void destroy_rendering(SDL_Window **window);
 
 int main(int argc, char *argv[]) {
 
-    unsigned int nBirds = 200;
+    unsigned int nBirds = 2000;
     unsigned int nHoiks = 2;
+
+    if (argc == 3) {
+        nBirds = atoi(argv[1]);
+        nHoiks = atoi(argv[2]);
+    }
 
     // Set up SDL2 for displaying and altering content.
     SDL_Window *window; SDL_Surface *screen;
@@ -67,6 +72,9 @@ int main(int argc, char *argv[]) {
 
         // Swap the screen and window buffer.
         SDL_UpdateWindowSurface(window);
+
+        // Stop the program when all birds are killed.
+        if (killed_birds == nBirds) break;
 
         // Handle the SDL2 event queue.
         while (SDL_PollEvent(&queue)) {
