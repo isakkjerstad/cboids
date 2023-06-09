@@ -4,7 +4,7 @@ Boids implementation in C using SDL2.
 ## Installation:
 On Linux, follow these steps to install SDL2:
 - Run: ```git clone https://github.com/libsdl-org/SDL.git```.
-- Then: ```cd``` and ```./configure```.
+- Then: ```cd SDL```, ```git checkout e6cb082``` and ```./configure```.
 - Finally do: ```make``` and ```sudo make install```.
 
 
